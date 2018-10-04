@@ -7,7 +7,8 @@ class BeatDetector(object):
         self.filename = filename
 
         # filled during process
-        self.rate = -1
+        self.rate = None
+        self.signal = None
 
     def load_data(self):
         """
@@ -17,13 +18,8 @@ class BeatDetector(object):
 
         mp3_file = pydub.AudioSegment.from_mp3(self.filename + ".mp3")
         mp3_file.export(self.filename + ".wav", format="wav")
-        self.rate, audData = scipy.io.wavfile.read(self.filename + ".wav")
-        self.signal = (audData[:,0] + audData[:,1]) / 2
-        print(max(self.signal))
-        import ipdb; ipdb.set_trace()
-
-        print(self.rate)
-        print(audData.shape)
+        self.rate, data = scipy.io.wavfile.read(self.filename + ".wav")
+        self.signal = data[:,0] / 2 + data[:,1] / 2
 
     def process(self):
         pass
