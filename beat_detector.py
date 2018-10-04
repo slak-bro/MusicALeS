@@ -1,16 +1,18 @@
 import pydub
 import scipy.io.wavfile
 
+
 class BeatDetector(object):
 
-    def __init__(self, filename):
+    def __init__(self, filename, batch_size):
         self.filename = filename
+        self.batch_size = batch_size  # in ms
 
         # filled during process
         self.rate = None
         self.signal = None
 
-    def load_data(self):
+    def _load_data(self):
         """
         load data from file self.filename
         :return:
@@ -21,8 +23,16 @@ class BeatDetector(object):
         self.rate, data = scipy.io.wavfile.read(self.filename + ".wav")
         self.signal = data[:,0] / 2 + data[:,1] / 2
 
-    def process(self):
+    def _process_pitch(self):
+        pass
+
+    def get_pitch_list(self):
+        self._load_data()
+        self._process_pitch()
+
+    def _process_beats(self):
         pass
 
     def get_beats_list(self):
-        self.load_data()
+        self._load_data()
+        self._process_beats()
