@@ -6,7 +6,7 @@ from scipy.signal import butter, lfilter, freqz
 import struct
 
 order = 5
-fs = 44100.0
+fs = 22050
 
 
 def butter_bandpass(lowcut, highcut):
@@ -49,7 +49,7 @@ class BeatDetector(object):
 
         wav = []
 
-        for _ in range(int(self.time_in_sec * 44100 / self.sample_size)):
+        for _ in range(int(self.time_in_sec * fs / self.sample_size)):
             wav = []
             for _ in range(self.mini_batches):
                 l, data = inp.read()
@@ -59,9 +59,12 @@ class BeatDetector(object):
 
             pitches = []
             for screen in self.color_screen_list:
-                pitch = self._process_pitch(wav, screen.MIN_PITCH, screen.MAX_PITCH)
-                screen.animate(pitch)
+                #print(max(wav), min(wav))
+                pitch = self._process_pitch(wav, screen)
                 pitches.append(pitch)
+                if not pitch:
+                    continue
+                screen.animate(pitch)
             if max(pitches) != 0:
                 print(pitches)
 
@@ -76,12 +79,14 @@ class BeatDetector(object):
         self.rate, data = scipy.io.wavfile.read(self.filename + ".wav")
         self.signal = data[:,0] / 2 + data[:,1] / 2
 
-    def _process_pitch(self, data, low, high):
+    def _process_pitch(self, data, screen):
+        low, high = screen.MIN_PITCH, screen.MAX_PITCH
         if not low:
             filtered_data = butter_lowpass_filter(data, high)
         else:
             filtered_data = butter_bandpass_filter(data, low, high)
         #import ipdb; ipdb.set_trace()
+        screen.full_signal += filtered_data.tolist()
         pitch_detector = aubio.pitch("default", self.sample_size*2, self.sample_size, 44100)
         pitch_detector.set_unit("Hz")
         pitch = pitch_detector(filtered_data)[0]

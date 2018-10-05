@@ -13,9 +13,13 @@ batch_size = 10  # in ms
 
 if __name__ == "__main__":
 
-    color_screen_list = [ColorScreen("Low", 0., 100.), ColorScreen("Mid", 200., 1000)]
-    beat_detector = BeatDetector(240, 4096, color_screen_list)
+    color_screen_list = [ColorScreen("Low", 0., 85., [40., 80.]), ColorScreen("Mid", 250., 1000., [200., 400.])]
+    beat_detector = BeatDetector(20, 1024, color_screen_list)
     beat_detector.listen()
+
+    for cs in color_screen_list:
+        cs.plot_pitches()
+        cs.write_signal()
 
     #wav = np.array(wav, dtype=np.int16)
     #scipy.io.wavfile.write("lul.wav", rate=44100, data=wav)
