@@ -13,7 +13,7 @@ batch_size = 10  # in ms
 
 if __name__ == "__main__":
 
-    color_screen_list = [ColorScreen("Low", 0., 85., [40., 80.]), ColorScreen("Mid", 250., 1000., [200., 400.])]
+    color_screen_list = [ColorScreen("Low", 0., 85., [50., 100.]), ColorScreen("Mid", 250., 1000., [200., 400.])]
     beat_detector = BeatDetector(20, 1024, color_screen_list)
     beat_detector.listen()
 

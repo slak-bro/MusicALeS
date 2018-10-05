@@ -54,6 +54,20 @@ class ColorScreen(object):
         cv2.imshow(self.name, self.img)
         cv2.waitKey(10)
 
+    def animate_2(self, pitch):
+        if pitch == 0.0:
+            return
+        print(pitch)
+        self.min_pitch_range = min(self.min_pitch_range, pitch)
+        self.max_pitch_range = max(self.max_pitch_range, pitch)
+        self.smooth_buffer.append(pitch)
+        avg_pitch = np.average(self.smooth_buffer) - 48
+        color = self.pitch_to_color(avg_pitch)
+        cv2.rectangle(self.img, (0,0), (511,511), color, 1000)
+        cv2.imshow(self.name, self.img)
+        cv2.waitKey(10)
+
+
     def finish():
         cv2.destroyAllWindows()
 
@@ -64,4 +78,4 @@ class ColorScreen(object):
     def write_signal(self):
         # import ipdb; ipdb.set_trace()
         self.full_signal = np.array(self.full_signal, dtype=np.float32)
-        scipy.io.wavfile.write(str(self.MIN_PITCH)+".wav", 44100, self.full_signal)
+        scipy.io.wavfile.write(str(self.MIN_PITCH)+".wav", 22050, self.full_signal)

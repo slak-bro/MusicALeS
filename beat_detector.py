@@ -1,11 +1,13 @@
 import alsaaudio, aubio, audioop
 import pydub
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io.wavfile
+from scipy.fftpack import rfft, irfft
 from scipy.signal import butter, lfilter, freqz
 import struct
 
-order = 5
+order = 10
 fs = 22050
 
 
@@ -45,7 +47,7 @@ class BeatDetector(object):
         inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NORMAL)
         inp.setchannels(1)
         inp.setformat(alsaaudio.PCM_FORMAT_FLOAT_LE)
-        inp.setperiodsize(1024)
+        inp.setperiodsize(self.sample_size)
 
         wav = []
 
@@ -86,6 +88,24 @@ class BeatDetector(object):
         else:
             filtered_data = butter_bandpass_filter(data, low, high)
         #import ipdb; ipdb.set_trace()
+        screen.full_signal += filtered_data.tolist()
+        pitch_detector = aubio.pitch("default", self.sample_size*2, self.sample_size, 44100)
+        pitch_detector.set_unit("Hz")
+        pitch = pitch_detector(filtered_data)[0]
+        return int(pitch)
+
+    def _process_pitch_2(self, data, screen):
+        low, high = int(screen.MIN_PITCH), int(screen.MAX_PITCH)
+        N = len(data)
+        T = 1. / 44100.
+        filtered_data = rfft(data)
+        #import ipdb; ipdb.set_trace()
+        filtered_data = [0.0 for _ in range(low)] + abs(filtered_data[low: high]).tolist() + [0.0 for _ in range(fs-high)]
+        filtered_data = irfft(filtered_data, self.sample_size)
+        #import ipdb; ipdb.set_trace()
+        filtered_data = np.array(filtered_data, dtype=np.float32)
+        plt.plot(np.arange(len(filtered_data)), filtered_data)
+        plt.show()
         screen.full_signal += filtered_data.tolist()
         pitch_detector = aubio.pitch("default", self.sample_size*2, self.sample_size, 44100)
         pitch_detector.set_unit("Hz")
