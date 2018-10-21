@@ -2,123 +2,85 @@ import alsaaudio, aubio, audioop
 import pydub
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy_ringbuffer import RingBuffer
 import scipy.io.wavfile
 from scipy.fftpack import rfft, irfft
 from scipy.signal import butter, lfilter, freqz
 import struct
 
-order = 10
-fs = 22050
-
-
-def butter_bandpass(lowcut, highcut):
-    nyq = 0.5 * fs
-    low = lowcut / nyq
-    high = highcut / nyq
-    b, a = butter(order, [low, high], btype='band')
-    return b, a
-
-def butter_bandpass_filter(data, lowcut, highcut):
-    b, a = butter_bandpass(lowcut, highcut)
-    y = np.array(lfilter(b, a, data), dtype=np.float32)
-    return y
-
-def butter_lowpass(cutoff):
-    nyq = 0.5 * fs
-    normal_cutoff = cutoff / nyq
-    b, a = butter(order, normal_cutoff, btype='low', analog=False)
-    return b, a
-
-def butter_lowpass_filter(data, cutoff):
-    b, a = butter_lowpass(cutoff)
-    y = np.array(lfilter(b, a, data), dtype=np.float32)
-    return y
-
 
 class BeatDetector(object):
 
-    def __init__(self, time_in_sec, sample_size, color_screen_list):
-        self.time_in_sec = time_in_sec
-        self.color_screen_list = color_screen_list
-        self.sample_size = sample_size
-        self.mini_batches = int(self.sample_size / 1024)
+    def __init__(self, sample_rate, big_batch_size, instant_batch_size, color_screen):
+        """
+        Beat Detector constructor
+        
+        Arguments:
+            sample_rate {int} -- sample rate of the input sound
+            big_batch_size {int} -- sample size for average energy computing
+            instant_batch_size {int} -- sample size for instant energy computing
+            color_screen {ColorScreen} -- color displayer
+        """
 
-    def listen(self):
+        self.color_screen = color_screen
+        self.sample_rate = sample_rate
+        self.big_batch_size = big_batch_size
+        self.instant_batch_size = instant_batch_size
+
+    def listen(self, time_in_sec):
+        """
+        Sound listener from microphone
+        time_in_sec {int} -- time (in seconds) to make the listening last
+        """
+
+        total_samples = time_in_sec * self.sample_rate
+
         inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NORMAL)
         inp.setchannels(1)
         inp.setformat(alsaaudio.PCM_FORMAT_FLOAT_LE)
-        inp.setperiodsize(self.sample_size)
 
-        wav = []
+        inp.setperiodsize(self.instant_batch_size)
+        wav = np.array([])
+        buffer = RingBuffer(capacity=int(self.big_batch_size / self.instant_batch_size), dtype=np.float32)
 
-        for _ in range(int(self.time_in_sec * fs / self.sample_size)):
-            wav = []
-            for _ in range(self.mini_batches):
-                l, data = inp.read()
-                data = list(struct.iter_unpack("<f", data))
-                wav += data
-            wav = np.array(wav, dtype=np.float32)[:,0]
+        for _ in range(int(total_samples / self.instant_batch_size)):
 
-            pitches = []
-            for screen in self.color_screen_list:
-                #print(max(wav), min(wav))
-                pitch = self._process_pitch(wav, screen)
-                pitches.append(pitch)
-                if not pitch:
-                    continue
-                screen.animate(pitch)
-            if max(pitches) != 0:
-                print(pitches)
+            _, data = inp.read()
+            data = np.array(list(struct.iter_unpack("<f", data)), dtype=np.float32)[:,0]
+            wav = np.concatenate((wav, data))
+            instant_energy = self.get_local_energy(wav[-self.instant_batch_size:])
+            buffer.append(instant_energy)
 
-    def _load_data(self):
+            if len(wav) >= self.big_batch_size:
+                instant_beat = self.get_instant_beat(instant_energy, np.average(buffer))
+                self.color_screen.animate(instant_beat)
+
+    def get_local_energy(self, sample):
         """
-        load data from file self.filename
-        :return:
+        Local energy computer
+        
+        Arguments:
+            sample {int-list} -- signal
         """
 
-        mp3_file = pydub.AudioSegment.from_mp3(self.filename + ".mp3")
-        mp3_file.export(self.filename + ".wav", format="wav")
-        self.rate, data = scipy.io.wavfile.read(self.filename + ".wav")
-        self.signal = data[:,0] / 2 + data[:,1] / 2
+        return sum(map(lambda x: x**2, sample)) / len(sample)
+        
 
-    def _process_pitch(self, data, screen):
-        low, high = screen.MIN_PITCH, screen.MAX_PITCH
-        if not low:
-            filtered_data = butter_lowpass_filter(data, high)
-        else:
-            filtered_data = butter_bandpass_filter(data, low, high)
-        #import ipdb; ipdb.set_trace()
-        screen.full_signal += filtered_data.tolist()
-        pitch_detector = aubio.pitch("default", self.sample_size*2, self.sample_size, 44100)
-        pitch_detector.set_unit("Hz")
-        pitch = pitch_detector(filtered_data)[0]
-        return int(pitch)
+    def get_instant_beat(self, instant_energy, average_energy):
+        """
+        Computes an instant beat level compared to average history
+        
+        Arguments:
+            instant_energy {int} -- energy over the last self.instant_batch_size samples
+            average_energy {int} -- energy over the last self.big_batch_size samples
+        """
 
-    def _process_pitch_2(self, data, screen):
-        low, high = int(screen.MIN_PITCH), int(screen.MAX_PITCH)
-        N = len(data)
-        T = 1. / 44100.
-        filtered_data = rfft(data)
-        #import ipdb; ipdb.set_trace()
-        filtered_data = [0.0 for _ in range(low)] + abs(filtered_data[low: high]).tolist() + [0.0 for _ in range(fs-high)]
-        filtered_data = irfft(filtered_data, self.sample_size)
-        #import ipdb; ipdb.set_trace()
-        filtered_data = np.array(filtered_data, dtype=np.float32)
-        plt.plot(np.arange(len(filtered_data)), filtered_data)
-        plt.show()
-        screen.full_signal += filtered_data.tolist()
-        pitch_detector = aubio.pitch("default", self.sample_size*2, self.sample_size, 44100)
-        pitch_detector.set_unit("Hz")
-        pitch = pitch_detector(filtered_data)[0]
-        return int(pitch)
+        return instant_energy / average_energy
 
-    def get_pitch_list(self):
-        self._load_data()
-        pitch = self._process_pitch()
+                
 
-    def _process_beats(self):
-        pass
 
-    def get_beats_list(self):
-        self._load_data()
-        self._process_beats()
+
+            
+
+
