@@ -42,13 +42,14 @@ class ColorScreen(object):
         return pitch
 
     def animate(self, beat):
-        """Animates the color screen
+        """
+        Animates the color screen
         
         Arguments:
             beat {float} -- beat index compared to local average
         """
 
-        print(beat)
+        #print(beat)
         #self.smooth_buffer.append(beat)
         color = self.beat_to_color(beat)
         cv2.rectangle(self.img, (0,0), (511,511), color, 1000)
@@ -68,6 +69,7 @@ class ColorScreen(object):
 
         # color = colorsys.hsv_to_rgb(min(1, beat/5),0.5,0.5)
         # color = tuple([int(e*255) for e in color])
+        return tuple([255, 255, 255]) if beat > 2 else tuple([0, 0, 0])
         color = tuple([beat*20 for _ in range(3)])
         return color
 

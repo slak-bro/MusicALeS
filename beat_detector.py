@@ -8,6 +8,8 @@ from scipy.fftpack import rfft, irfft
 from scipy.signal import butter, lfilter, freqz
 import struct
 
+from helpers import get_mic_listener
+
 
 class BeatDetector(object):
 
@@ -35,11 +37,7 @@ class BeatDetector(object):
 
         total_samples = time_in_sec * self.sample_rate
 
-        inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NORMAL)
-        inp.setchannels(1)
-        inp.setformat(alsaaudio.PCM_FORMAT_FLOAT_LE)
-
-        inp.setperiodsize(self.instant_batch_size)
+        inp = get_mic_listener(self.instant_batch_size, self.sample_rate)
         wav = np.array([])
         buffer = RingBuffer(capacity=int(self.big_batch_size / self.instant_batch_size), dtype=np.float32)
 
@@ -47,13 +45,19 @@ class BeatDetector(object):
 
             _, data = inp.read()
             data = np.array(list(struct.iter_unpack("<f", data)), dtype=np.float32)[:,0]
+            #import ipdb; ipdb.set_trace()
             wav = np.concatenate((wav, data))
-            instant_energy = self.get_local_energy(wav[-self.instant_batch_size:])
+            instant_energy = self.get_local_energy(data)
             buffer.append(instant_energy)
 
             if len(wav) >= self.big_batch_size:
-                instant_beat = self.get_instant_beat(instant_energy, np.average(buffer))
+                instant_beat = self.get_instant_beat(instant_energy, np.average(np.array(buffer)))
+                print(instant_energy, instant_beat)
+                if instant_energy < 0.0001 and instant_beat > 2:
+                    continue
                 self.color_screen.animate(instant_beat)
+            
+        scipy.io.wavfile.write("oe.wav", self.sample_rate, wav)
 
     def get_local_energy(self, sample):
         """
@@ -63,8 +67,7 @@ class BeatDetector(object):
             sample {int-list} -- signal
         """
 
-        return sum(map(lambda x: x**2, sample)) / len(sample)
-        
+        return sum(map(lambda x: x**2, sample))
 
     def get_instant_beat(self, instant_energy, average_energy):
         """
