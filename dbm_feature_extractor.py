@@ -27,19 +27,41 @@ def mp3preprocess(path):
 
 from dbn.tensorflow import UnsupervisedDBN
 from sklearn.decomposition import PCA
+import pickle
+import matplotlib.pyplot as plt
+
 class DBNFeatureExtractor(object):
-    def __init__(self):
-        self.dbn = UnsupervisedDBN(hidden_layers_structure=[513, 50, 50, 50],
-                                   batch_size=1000,
-                                   learning_rate_rbm=0.001,
-                                   n_epochs_rbm=5,
-                                   activation_function='sigmoid')
+    def __init__(self, load=False):
+        if load:
+            self.dbn = UnsupervisedDBN.load("dbn.pickle")
+            self.pca = pickle.load(open("pca.pickle", "rb"))
+        else:
+            self.dbn = UnsupervisedDBN(hidden_layers_structure=[513, 50, 50, 50],
+                                       batch_size=700,
+                                       learning_rate_rbm=0.001,
+                                       n_epochs_rbm=5,
+                                       activation_function='sigmoid')
+            self.pca = PCA(n_components=2)
+    def save(self):
+        self.dbn.save("dbn.pickle")
+        pickle.dump(self.pca, open("pca.pickle", "wb"))
+
     def train(self, frames):
         self.dbn.fit(frames)
+        raw_features = self.dbn.transform(frames)
+        self.pca.fit(raw_features)
+        plt.figure(1, figsize=(4, 3))
+        plt.clf()
+        plt.axes([.2, .2, .7, .7])
+        plt.plot(self.pca.explained_variance_, linewidth=2)
+        plt.axis('tight')
+        plt.xlabel('n_components')
+        plt.ylabel('explained_variance_')
+        plt.show()
+
     def extractFeatures(self, frame):
         raw_features = self.dbn.transform(frame)
-        pca = PCA(n_components=2)
-        return pca.fit_transform(raw_features)
+        return self.pca.transform(raw_features)
 
 if __name__ == "__main__":
     TRAIN_DATA_PATH = "./traindata"
@@ -58,13 +80,11 @@ if __name__ == "__main__":
 
         dbn = DBNFeatureExtractor()        
         dbn.train(train_data)
-        dbn.dbn.save("dbn.pickle")
+        dbn.save()
     elif sys.argv[1] == "test":
-        dbn = DBNFeatureExtractor()
-        dbn.dbn = UnsupervisedDBN.load("dbn.pickle")
+        dbn = DBNFeatureExtractor(load=True)
         test_data = np.array(mp3preprocess("cvrl-subterfuge.mp3"))
         features = dbn.extractFeatures(test_data)
-        import matplotlib.pyplot as plt
         x,y = zip(*features)
         plt.scatter(y, x, c=range(len(features)))
         plt.show()
