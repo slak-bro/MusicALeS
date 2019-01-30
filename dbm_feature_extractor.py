@@ -35,22 +35,24 @@ from dbn.tensorflow import UnsupervisedDBN
 from sklearn.decomposition import PCA
 import pickle
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 class DBNFeatureExtractor(object):
     def __init__(self, load=False):
+
         if load:
             self.dbn = UnsupervisedDBN.load("dbn.pickle")
             self.prepca = pickle.load(open("prepca.pickle", "rb"))
             self.pca = pickle.load(open("pca.pickle", "rb"))
         else:
             self.dbn = UnsupervisedDBN(hidden_layers_structure=[50, 50, 50],
-                                       batch_size=1024,
+                                       batch_size=4096,
                                        learning_rate_rbm=0.001,
-                                       n_epochs_rbm=5,
+                                       n_epochs_rbm=15,
                                        contrastive_divergence_iter=1,
                                        activation_function='sigmoid')
             self.prepca = PCA(n_components=160)
-            self.pca = PCA(n_components=2)
+            self.pca = PCA(n_components=16)
     def save(self):
         self.dbn.save("dbn.pickle")
         pickle.dump(self.prepca, open("prepca.pickle", "wb"))
@@ -75,13 +77,58 @@ class DBNFeatureExtractor(object):
         raw_features = self.dbn.transform(frame)
         return self.pca.transform(raw_features)
 
+from pydub.playback import play
+from multiprocessing import Process
+import time
+def mp3_real_time_plot(path, featureExtractor):
+    frames_data = mp3preprocess(path)
+    features_data = featureExtractor.extractFeatures(np.array(frames_data))
+    segment = AudioSegment.from_file(file=path)
+    segment_duration = len(segment)/1000
+    fig = plt.figure()
+    dim = 16
+    ax = [fig.add_subplot(4, 4, i+1) for i in range(dim)]
+    xs = []
+    ys = [[] for _ in range(dim)]
+    
+    start_time = time.time()
+    play_process = Process(target=play, args=(segment,))
+    play_process.start()
+    # This function is called periodically from FuncAnimation
+    def animate(i, xs, ys):
+        play_time = time.time() - start_time
+        frameIndex = int(play_time * SAMPLE_RATE) // NSAMPLES
+        if frameIndex >= len(features_data):
+            return
+        #current_features = features_data[frameIndex]
+        ys = np.transpose(features_data[max(0,frameIndex-1000):frameIndex+1])
+        xs = range(len(ys[0]))
+        #xs = xs[-100:]
+        plt.title('PCA over Time')
+        #xs.append(play_time)
+        for i in range(dim):
+            #ys[i].append(current_features[i])
+            #ys[i] = ys[i][-100:]
+            # Draw x and y lists
+            ax[i].clear()
+            ax[i].plot(xs, ys[i])
+            ax[i].set_title("PCA[{}]".format(i))
+            # Format plot
+            plt.xticks(rotation=45, ha='right')
+            plt.subplots_adjust(bottom=0.30)
+            
+    ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys), interval=500)
+    plt.show()
+
+
+
 if __name__ == "__main__":
     TRAIN_DATA_PATH = "./traindata"
     dbn = None
     if sys.argv[1] == "train":
         paths = []
         for root, dirs, files in os.walk(TRAIN_DATA_PATH):  
-            for filename in files[:10]:
+            for filename in files:
                 if filename[-4:] == ".mp3":
                     paths.append(TRAIN_DATA_PATH+"/"+filename)
         p = Pool(8)
@@ -96,7 +143,7 @@ if __name__ == "__main__":
         dbn.save()
     elif sys.argv[1] == "test":
         dbn = DBNFeatureExtractor(load=True)
-        test_data = np.array(mp3preprocess("traindata/01 REC-2018-12-02.mp3"))
+        test_data = np.array(mp3preprocess("/home/arthur/Documents/BeatDetectionArduinoEngine/cvrl-subterfuge.mp3"))
         features = dbn.extractFeatures(test_data)
         #features = np.mean(np.split(features[:5000], 500), axis=1)
         #print(features)
@@ -104,6 +151,9 @@ if __name__ == "__main__":
         plt.scatter(y, x,c=np.arange(len(x)),  cmap="viridis", marker="x")
         plt.autoscale()
         plt.show()
+    elif sys.argv[1] == "rttest":
+        dbn = DBNFeatureExtractor(load=True)
+        mp3_real_time_plot(sys.argv[2], dbn)
     elif sys.argv[1] == "fft":
         test_data = np.array(mp3preprocess("cvrl-subterfuge.mp3"))
         fftdata = test_data[200]
