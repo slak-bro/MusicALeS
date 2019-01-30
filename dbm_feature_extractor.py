@@ -49,8 +49,8 @@ class DBNFeatureExtractor(object):
             self.dbn = UnsupervisedDBN(hidden_layers_structure=[50, 50, 50],
                                        batch_size=1024,
                                        learning_rate_rbm=0.001,
-                                       n_epochs_rbm=15,
-                                       contrastive_divergence_iter=1,
+                                       n_epochs_rbm=5,
+                                       contrastive_divergence_iter=2,
                                        activation_function='sigmoid')
             self.bands = [
                 {"start": 0, "end": 150, "pca_components":30, "energy_factor": 5},
@@ -109,10 +109,14 @@ def mp3_real_time_plot(path, featureExtractor):
     def animate(i, xs, ys):
         play_time = time.time() - start_time
         frameIndex = int(play_time * SAMPLE_RATE) // NSAMPLES
-        if frameIndex >= len(features_data):
+        SMOOTHING = 10
+        if frameIndex >= len(features_data) or frameIndex < SMOOTHING:
             return
         #current_features = features_data[frameIndex]
-        ys = features_data[max(0,frameIndex-1000):frameIndex+1]
+        tmpys = features_data[max(0,frameIndex-1000):frameIndex+1]
+        ys = np.zeros((tmpys.shape[0]- (SMOOTHING - 1), tmpys.shape[1]))
+        for i in range(dim):
+            ys[:,i] = np.convolve(tmpys[:,i], np.ones((SMOOTHING,))/SMOOTHING, mode="valid")
         xs = range(ys.shape[0])
         #xs = xs[-100:]
         plt.title('PCA over Time')
