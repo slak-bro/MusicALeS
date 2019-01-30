@@ -36,6 +36,7 @@ from sklearn.decomposition import PCA
 import pickle
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import math
 
 class DBNFeatureExtractor(object):
     def __init__(self, load=False):
@@ -46,15 +47,15 @@ class DBNFeatureExtractor(object):
             self.pca = pickle.load(open("pca.pickle", "rb"))
         else:
             self.dbn = UnsupervisedDBN(hidden_layers_structure=[50, 50, 50],
-                                       batch_size=4096,
+                                       batch_size=1024,
                                        learning_rate_rbm=0.001,
                                        n_epochs_rbm=15,
                                        contrastive_divergence_iter=1,
                                        activation_function='sigmoid')
             self.bands = [
-                {"start": 0, "end": 150, "pca_components":30},
-                {"start": 120, "end":300, "pca_components":70},
-                {"start": 250, "end":513, "pca_components":60}
+                {"start": 0, "end": 150, "pca_components":30, "energy_factor": 5},
+                {"start": 120, "end":300, "pca_components":70, "energy_factor": 1},
+                {"start": 250, "end":513, "pca_components":60, "energy_factor": 0.5}
             ]
             self.prepca = [PCA(n_components=band["pca_components"]) for band in self.bands]
             self.pca = PCA(n_components=16)
@@ -63,20 +64,27 @@ class DBNFeatureExtractor(object):
         pickle.dump(self.bands, open("bands.pickle", "wb"))
         pickle.dump(self.prepca, open("prepca.pickle", "wb"))
         pickle.dump(self.pca, open("pca.pickle", "wb"))
+    
+    def normalize_energy(self, banded_frames):
+        bands_energy = [band["energy_factor"] * np.sum(np.square(banded_frames[bandIndex]))/(band["end"] - band["start"]) 
+                             for bandIndex, band  in enumerate(self.bands)]
+        return [bf/math.sqrt(be) for bf,be in zip(banded_frames, bands_energy)]
 
     def train(self, frames):
-        frames = [self.prepca[bandIndex].fit_transform(frames[:,band["start"]:band["end"]]) 
+        banded_frames = [self.prepca[bandIndex].fit_transform(frames[:,band["start"]:band["end"]]) 
                              for bandIndex, band  in enumerate(self.bands)]
-        frames = np.concatenate(frames, axis=1)
+        banded_frames = self.normalize_energy(banded_frames)
+        frames = np.concatenate(banded_frames, axis=1)
         print(frames.shape)
         self.dbn.fit(frames)
         raw_features = self.dbn.transform(frames)
         self.pca.fit(raw_features)
 
     def extractFeatures(self, frames):
-        frames = [self.prepca[bandIndex].transform(frames[:,band["start"]:band["end"]]) 
+        banded_frames = [self.prepca[bandIndex].transform(frames[:,band["start"]:band["end"]]) 
                              for bandIndex, band  in enumerate(self.bands)]
-        frames = np.concatenate(frames, axis=1)
+        banded_frames = self.normalize_energy(banded_frames)
+        frames = np.concatenate(banded_frames, axis=1)
         raw_features = self.dbn.transform(frames)
         return self.pca.transform(raw_features)
 
@@ -104,8 +112,8 @@ def mp3_real_time_plot(path, featureExtractor):
         if frameIndex >= len(features_data):
             return
         #current_features = features_data[frameIndex]
-        ys = np.transpose(features_data[max(0,frameIndex-1000):frameIndex+1])
-        xs = range(len(ys[0]))
+        ys = features_data[max(0,frameIndex-1000):frameIndex+1]
+        xs = range(ys.shape[0])
         #xs = xs[-100:]
         plt.title('PCA over Time')
         #xs.append(play_time)
@@ -114,7 +122,7 @@ def mp3_real_time_plot(path, featureExtractor):
             #ys[i] = ys[i][-100:]
             # Draw x and y lists
             ax[i].clear()
-            ax[i].plot(xs, ys[i])
+            ax[i].plot(xs, ys[:,i])
             ax[i].set_title("PCA[{}]".format(i))
             # Format plot
             plt.xticks(rotation=45, ha='right')
@@ -131,7 +139,7 @@ if __name__ == "__main__":
     if sys.argv[1] == "train":
         paths = []
         for root, dirs, files in os.walk(TRAIN_DATA_PATH):  
-            for filename in files[:5]:
+            for filename in files:
                 if filename[-4:] == ".mp3":
                     paths.append(TRAIN_DATA_PATH+"/"+filename)
         p = Pool(8)
