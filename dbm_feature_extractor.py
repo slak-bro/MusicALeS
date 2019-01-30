@@ -39,8 +39,8 @@ import matplotlib.animation as animation
 
 class DBNFeatureExtractor(object):
     def __init__(self, load=False):
-
         if load:
+            self.bands = pickle.load(open("bands.pickle", "rb"))
             self.dbn = UnsupervisedDBN.load("dbn.pickle")
             self.prepca = pickle.load(open("prepca.pickle", "rb"))
             self.pca = pickle.load(open("pca.pickle", "rb"))
@@ -51,30 +51,33 @@ class DBNFeatureExtractor(object):
                                        n_epochs_rbm=15,
                                        contrastive_divergence_iter=1,
                                        activation_function='sigmoid')
-            self.prepca = PCA(n_components=160)
+            self.bands = [
+                {"start": 0, "end": 150, "pca_components":30},
+                {"start": 120, "end":300, "pca_components":70},
+                {"start": 250, "end":513, "pca_components":60}
+            ]
+            self.prepca = [PCA(n_components=band["pca_components"]) for band in self.bands]
             self.pca = PCA(n_components=16)
     def save(self):
         self.dbn.save("dbn.pickle")
+        pickle.dump(self.bands, open("bands.pickle", "wb"))
         pickle.dump(self.prepca, open("prepca.pickle", "wb"))
         pickle.dump(self.pca, open("pca.pickle", "wb"))
 
     def train(self, frames):
-        frames = self.prepca.fit_transform(frames)
+        frames = [self.prepca[bandIndex].fit_transform(frames[:,band["start"]:band["end"]]) 
+                             for bandIndex, band  in enumerate(self.bands)]
+        frames = np.concatenate(frames, axis=1)
+        print(frames.shape)
         self.dbn.fit(frames)
         raw_features = self.dbn.transform(frames)
         self.pca.fit(raw_features)
-        plt.figure(1, figsize=(4, 3))
-        plt.clf()
-        plt.axes([.2, .2, .7, .7])
-        plt.plot(self.pca.explained_variance_, linewidth=2)
-        plt.axis('tight')
-        plt.xlabel('n_components')
-        plt.ylabel('explained_variance_')
-        plt.show()
 
-    def extractFeatures(self, frame):
-        frame = self.prepca.transform(frame)
-        raw_features = self.dbn.transform(frame)
+    def extractFeatures(self, frames):
+        frames = [self.prepca[bandIndex].transform(frames[:,band["start"]:band["end"]]) 
+                             for bandIndex, band  in enumerate(self.bands)]
+        frames = np.concatenate(frames, axis=1)
+        raw_features = self.dbn.transform(frames)
         return self.pca.transform(raw_features)
 
 from pydub.playback import play
@@ -128,7 +131,7 @@ if __name__ == "__main__":
     if sys.argv[1] == "train":
         paths = []
         for root, dirs, files in os.walk(TRAIN_DATA_PATH):  
-            for filename in files:
+            for filename in files[:5]:
                 if filename[-4:] == ".mp3":
                     paths.append(TRAIN_DATA_PATH+"/"+filename)
         p = Pool(8)
