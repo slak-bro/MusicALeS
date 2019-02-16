@@ -1,5 +1,8 @@
 from animator import Animator
 import numpy as np
+
+def grad(ca,cb,i,n):
+    return [int((ca[k]+cb[k])*(i/n)) for k in range(3)]
 class EnergyAnimator(Animator):
     def __init__(self, audio_source, screen):
         super().__init__(audio_source, screen)
@@ -11,7 +14,7 @@ class EnergyAnimator(Animator):
         energy = np.sum(np.square(data))
         self.max = max(energy, self.max)
         v = int(153 * energy /self.max) if self.max > 0 else 0
-        self.screen.display([[v,0,v] for i in range(self.screen.nLeds)])
+        self.screen.display([grad([v,0,v],[0,0,0],i,self.screen.nLeds) for i in range(self.screen.nLeds)])
         
 
 
