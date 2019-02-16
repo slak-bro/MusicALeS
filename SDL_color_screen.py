@@ -1,6 +1,6 @@
 import sys
 import sdl2.ext
-from Screen import Screen
+from screen import Screen
 from multiprocessing import Process, Array as mpArray
 import numpy as np
 
@@ -15,6 +15,10 @@ class SDLColorScreen(Screen):
         self.LED_WIDTH = self.SCREEN_WIDTH // self.nLeds
         self.renderProcess = None
         self.LEDS = mpArray('i', [0,0,0]*self.nLeds)
+
+        self.running = True
+        self.renderProcess = Process(target=self._renderFunction)
+        self.renderProcess.start()
         
     def display(self, colorArray):
         assert len(colorArray) == self.nLeds
@@ -24,10 +28,7 @@ class SDLColorScreen(Screen):
             self.LEDS[3*i+1] = flat[3*i+1]
             self.LEDS[3*i+2] = flat[3*i+2]
 
-    def start(self):
-        self.running = True
-        self.renderProcess = Process(target=self._renderFunction)
-        self.renderProcess.start()
+        
     def _renderFunction(self):
         self.window = sdl2.ext.Window("SDL Color Screen", size=(self.SCREEN_WIDTH,self.SCREEN_HEIGHT))
         self.windowsurface = self.window.get_surface()
@@ -49,7 +50,6 @@ class SDLColorScreen(Screen):
 if __name__ == "__main__":
     import time
     screen = SDLColorScreen(25)
-    screen.start()
     r,g,b = 0,0,0
     while True:
         screen.display([[(r+i)%255,(g+i)%255,(b+i)%255] for i in range(25)])
