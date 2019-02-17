@@ -1,4 +1,4 @@
-from audio_source import AudioSource
+from .audio_source import AudioSource
 from pydub import AudioSegment
 from pydub.utils import get_array_type
 import array

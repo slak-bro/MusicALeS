@@ -1,6 +1,6 @@
 import sys
 import sdl2.ext
-from screen import Screen
+from .screen import Screen
 from multiprocessing import Process, Array as mpArray
 import numpy as np
 
