@@ -1,25 +1,62 @@
-import alsaaudio, time, audioop
-import numpy as np
-import random
-import scipy.io.wavfile, scipy
-import struct
-import sys
+#!/usr/bin/python3
 
-from beat_detector import BeatDetector
-from color_screen import ColorScreen
+import argparse
 
+from audio_sources.file_audio_source import FileAudioSource
+from audio_sources.alsa_audio_source import ALSAAudioSource    
+from screens.sdl_color_screen import SDLColorScreen
+from animators.energy_animator import EnergyAnimator
 
-batch_size = 10  # in ms
+screens = {
+    "sdl": SDLColorScreen,
+}
+animators = {
+    "energy": EnergyAnimator,
+}
 
 if __name__ == "__main__":
-
-    color_screen_list = [ColorScreen("Low", 0., 85., [50., 100.]), ColorScreen("Mid", 250., 1000., [200., 400.])]
-    beat_detector = BeatDetector(20, 1024, color_screen_list)
-    beat_detector.listen()
-
-    for cs in color_screen_list:
-        cs.plot_pitches()
-        cs.write_signal()
-
-    #wav = np.array(wav, dtype=np.int16)
-    #scipy.io.wavfile.write("lul.wav", rate=44100, data=wav)
+    parser = argparse.ArgumentParser(description='BeatDetectionArduinoEngine')
+    parser.add_argument('--screen',
+                        metavar="[ {} ]".format(" | ".join(screens.keys())),
+                        dest="screen", default="sdl", help='The screen')
+    parser.add_argument('-n', '--nleds', dest="nleds",type=int, help="Number of leds", default=50)
+    parser.add_argument('--animator', 
+                        metavar="[ {} ]".format(" | ".join(animators.keys())), 
+                        dest="animator",
+                        default="energy", help='Animator type')
+    parser.add_argument('--alsa', default=False, dest="alsa", action="store_true", help='Alsa audio source')
+    parser.add_argument(
+        '-f',
+        '--file',
+        nargs=1,
+        metavar='filepath',
+        dest="filepath",
+        help='Audio file as a source',
+    )
+    
+    args = parser.parse_args()
+    screen = None
+    animator = None
+    audio_source = None
+    try:
+        screen = screens[args.screen](args.nleds)
+    except KeyError:
+        parser.print_help()
+        exit(1)
+    try:
+        animator = animators[args.animator]
+    except KeyError:
+        parser.print_help()
+        exit(1)
+    
+    if args.alsa:
+        audio_source = ALSAAudioSource()
+    elif args.filepath:
+        audio_source = FileAudioSource(args.filepath[0])
+    else:
+        parser.print_help()
+        exit(1)
+    
+    a = animator(audio_source, screen)
+    a.start()
+    
