@@ -6,12 +6,14 @@ from audio_sources.file_audio_source import FileAudioSource
 from audio_sources.alsa_audio_source import ALSAAudioSource    
 from screens.sdl_color_screen import SDLColorScreen
 from animators.energy_animator import EnergyAnimator
+from animators.fft_animator import FFTAnimator
 
 screens = {
     "sdl": SDLColorScreen,
 }
 animators = {
     "energy": EnergyAnimator,
+    "fft": FFTAnimator,
 }
 
 if __name__ == "__main__":
