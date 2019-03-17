@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from animators.animator import Animator
 import numpy as np
 

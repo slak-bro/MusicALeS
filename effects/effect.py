@@ -4,8 +4,10 @@ from abc import ABC, abstractmethod
 
 
 class Effect(ABC):
-    def __init__(self):
-        pass
+    def __init__(self, audio_source, screen, animator):
+        self.audio_source = audio_source
+        self.screen = screen
+        self.animator = animator
     
     @abstractmethod
     def apply_effect(self, data):
