@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 from abc import ABC, abstractmethod
+import numpy as np
+
 
 class Animator(ABC):
     def __init__(self, AudioSource, Screen):
@@ -9,6 +11,13 @@ class Animator(ABC):
     
     def start(self):
         self.audio_source.start()
+
+    def prepare_for_leds(self, data):
+        shape = data.shape
+        data = data.flatten()
+        for i in range(len(data)):
+            data[i] = min(max(0, int(data[i])), 255)
+        return np.reshape(data, shape).astype(np.int32)
     
     @abstractmethod
     def animate(self, data):

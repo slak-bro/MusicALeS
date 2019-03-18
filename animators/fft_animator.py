@@ -22,14 +22,14 @@ class FFTAnimator(Animator):
         self.audio_source.register_callback(self.animate)
         self.max = 0
         self.history_ponderation =  [0.1, 0.2, 0.3, 0.4]
-        self.history = [[[0, 0, 0] for _ in range(self.screen.nLeds)]] * (len(self.history_ponderation) - 1)
+        self.history = np.array([[[0, 0, 0] for _ in range(self.screen.nLeds)]] * (len(self.history_ponderation) - 1))
 
         self.effect_args = [self.audio_source, self.screen, self]
         # List of effects. Order matters!
-        self.list_effects = [BasicColorEffect(*self.effect_args),
-                             SpaceSmoothingEffect(*self.effect_args, first_value=[0, 0, 0]),
-                             TimeSmoothingEffect(*self.effect_args, history_ponderation=self.history_ponderation), 
-                             SymmetryEffect(*self.effect_args)]
+        self.list_effects = [SpaceSmoothingEffect(*self.effect_args, first_value=[0, 0, 0]),
+                             TimeSmoothingEffect(*self.effect_args, history_ponderation=self.history_ponderation),
+                             BasicColorEffect(*self.effect_args),
+                             SymmetryEffect(*self.effect_args),]
     
     def rescale_list(self, data):
         """
@@ -50,7 +50,7 @@ class FFTAnimator(Animator):
         # Apply abs function and get a color value
         data = list(map(abs, data))
         self.max = max(data)
-        return [int(255*x/self.max) for x in data[:self.screen.nLeds]]
+        return [[int(255*x/self.max)] for x in data[:self.screen.nLeds]]
     
     def calibrate(self, y):
         """
@@ -76,7 +76,6 @@ class FFTAnimator(Animator):
     
     def animate(self, data):
         cal_Y = fft(data)[:self.sample_size]
-        
         try:
             cal_Y = self.calibrate(cal_Y)
             cal_Y = self.rescale_list(cal_Y)
@@ -85,8 +84,8 @@ class FFTAnimator(Animator):
             return
 
         cal_Y = self.apply_effects(cal_Y)
+        cal_Y = self.prepare_for_leds(cal_Y)
 
-        self.history = self.history[1:]
-        self.history.append(cal_Y)
-
+        self.history = np.append(self.history[1:], [cal_Y], axis=0)
+        
         self.screen.display(cal_Y)
