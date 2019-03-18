@@ -31,6 +31,6 @@ class TimeSmoothingEffect(Effect):
 
         for history_element, ponderation in zip(history, self.history_ponderation):
             result = np.add(result, ponderation*history_element)
-        result = [list(map(int, led)) for led in result]
+        result = np.array([list(map(int, led)) for led in result])
 
         return result
