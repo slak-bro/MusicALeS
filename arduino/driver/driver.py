@@ -8,16 +8,19 @@ class Command(Enum):
     LIGHT = 1
 
 class Driver(object):
-    def __init__(self, dev="/dev/ttyACM0", baud_rate=115200):
+    def __init__(self, dev="/dev/ttyACM0", baud_rate=500000):
+        print("LED driver init @{} bps".format(baud_rate))
         self.serial = serial.Serial(dev, baud_rate)
         self.nLeds = None
+    def write(self, *data):
+        self.serial.write(pack("<{}B".format(len(data)), *data))
+        self.serial.flush()
+        print("Bytes sent: {}".format(data))
     def setup(self, nLeds):
         self.nLeds = nLeds
-        self.serial.write(pack('<B', Command.SETUP.value))
-        self.serial.flush()
+        self.write(Command.SETUP.value)
         # print(self.serial.readline())
-        self.serial.write(pack('<BB', nLeds//256, nLeds%256))
-        self.serial.flush()
+        self.write(nLeds//256, nLeds%256)
         print(self.serial.readline())
 
     def light(self, data):
@@ -38,7 +41,7 @@ class Driver(object):
 
 if __name__ == "__main__":
     d = Driver()
-    nled = 150
+    nled = 300
     d.setup(nled)
     i=0
     print("Setup complete.")
