@@ -25,7 +25,6 @@ class BasicColorEffect(Effect):
         self.index += 1
         return np.array(self.color_palette.__call__(self.index % 256)[:-1])
 
-    
     def apply_effect(self, data):
         """
         Find a color and apply it to the gien input
@@ -38,4 +37,4 @@ class BasicColorEffect(Effect):
         """
 
         color = self.get_color()
-        return [x*color for x in data]
+        return np.array([x*color for x in data])
