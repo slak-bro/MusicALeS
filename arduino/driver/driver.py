@@ -42,7 +42,7 @@ class Driver(object):
         self.serial.read()
 
 if __name__ == "__main__":
-    d = Driver(debug=False)
+    d = Driver(debug=True)
     nled = 300
     d.setup(nled)
     i=0

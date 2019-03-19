@@ -62,7 +62,7 @@ void light_command()
 
 void setup()
 {
-  Serial.begin(SERIAL_SPEED);
+  //Serial.begin(SERIAL_SPEED);
   LED.setOutput(LED_PIN);
   LED.set_crgb_at(0,color_value);
   LED.sync();
@@ -74,6 +74,7 @@ void setup()
   delay(1000);
   LED.set_crgb_at(0,color_value);
   LED.sync();
+  Serial.begin(SERIAL_SPEED);
 } 
 
 void loop()
