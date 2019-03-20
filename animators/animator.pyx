@@ -1,15 +1,14 @@
-from abc import ABC, abstractmethod
+#from abc import ABC
 
-class Animator(ABC):
+cdef class Animator():
     def __init__(self, AudioSource, Screen):
         self.audio_source = AudioSource
         self.screen = Screen
     
-    def start(self):
+    cpdef start(self):
         self.audio_source.start()
     
-    @abstractmethod
-    def animate(self, data):
+    cdef animate(self, list data):
         """Animate the color screen; require a call to Animator.screen.display
         
         Args:
