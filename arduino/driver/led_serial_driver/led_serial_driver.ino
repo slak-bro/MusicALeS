@@ -4,15 +4,16 @@ enum Commands {
 };
 typedef enum Commands Commands;
 
-#include <WS2812.h>
+#include <FastLED.h>
 
 #define SERIAL_SPEED 500000
 #define LED_PIN 7
-#define MAX_LED_COUNT 300
+#define COLOR_ORDER GRB
+#define CHIPSET WS2812
+#define MAX_LED_COUNT 500
 #define BRIGHTNESS 100
 
-WS2812 LED(MAX_LED_COUNT);
-cRGB color_value;
+CRGB leds[MAX_LED_COUNT];
 unsigned short nLeds = MAX_LED_COUNT;
 byte command = -1;
 
@@ -50,12 +51,13 @@ void light_command()
   for (int i = 0; i < nLeds; i++)
   {
     wait_serial_bytes(3);
-    color_value.r = Serial.read();
-    color_value.g = Serial.read();
-    color_value.b = Serial.read();
-    LED.set_crgb_at(i, color_value);
+    for(int c = 0; c < 3; c++)
+    {
+      leds[i][c] = Serial.read();
+    }
   }
-  LED.sync();
+  FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, nLeds);
+  FastLED.show();
   Serial.write(0);
   Serial.flush();
 }
@@ -63,17 +65,8 @@ void light_command()
 void setup()
 {
   //Serial.begin(SERIAL_SPEED);
-  LED.setOutput(LED_PIN);
-  LED.set_crgb_at(0,color_value);
-  LED.sync();
-  color_value.r = 255;
-  delay(1000);
-  LED.set_crgb_at(0,color_value);
-  LED.sync();
-  color_value.r = 0;
-  delay(1000);
-  LED.set_crgb_at(0,color_value);
-  LED.sync();
+  FastLED.setBrightness( BRIGHTNESS );
+  FastLED.setCorrection(Tungsten100W );
   Serial.begin(SERIAL_SPEED);
 } 
 
