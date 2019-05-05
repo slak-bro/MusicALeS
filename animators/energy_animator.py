@@ -8,7 +8,7 @@ def grad(ca,cb,i,n):
 class EnergyAnimator(Animator):
     def __init__(self, audio_source, screen):
         super().__init__(audio_source, screen)
-        self.audio_source.configure(44100, 44100//30)
+        self.audio_source.configure(22000, 200)
         self.audio_source.register_callback(self.animate)
         self.val = 255
         self.buffer = [0 for _ in range(20)]
