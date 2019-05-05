@@ -8,7 +8,7 @@ class Command(Enum):
     LIGHT = 1
 
 class Driver(object):
-    def __init__(self, dev="/dev/ttyACM0", baud_rate=115200):
+    def __init__(self, dev="/dev/ttyS2", baud_rate=500000):
         self.serial = serial.Serial(dev, baud_rate)
         self.nLeds = None
     def setup(self, nLeds):
@@ -38,7 +38,7 @@ class Driver(object):
 
 if __name__ == "__main__":
     d = Driver()
-    nled = 150
+    nled = 300
     d.setup(nled)
     i=0
     print("Setup complete.")
