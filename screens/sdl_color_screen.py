@@ -1,16 +1,16 @@
 import sys
 import sdl2.ext
-from .screen import Screen
+from screens.screen import Screen
 from multiprocessing import Process, Array as mpArray
 import numpy as np
 
 class SDLColorScreen(Screen):
     def __init__(self, nLeds):
-        self.nLeds =nLeds
+        self.nLeds = nLeds
         self.RESOURCES = sdl2.ext.Resources(__file__, "resources")
         sdl2.ext.init()
         self.SCREEN_HEIGHT = 200
-        self.SCREEN_WIDTH = 840
+        self.SCREEN_WIDTH = 1530
         
         self.LED_WIDTH = self.SCREEN_WIDTH // self.nLeds
         self.renderProcess = None
@@ -30,7 +30,7 @@ class SDLColorScreen(Screen):
 
         
     def _renderFunction(self):
-        self.window = sdl2.ext.Window("SDL Color Screen", size=(self.SCREEN_WIDTH,self.SCREEN_HEIGHT))
+        self.window = sdl2.ext.Window("SDL Color Screen", size=(self.SCREEN_WIDTH,self.SCREEN_HEIGHT), position=(0, 0))
         self.windowsurface = self.window.get_surface()
         self.window.show()
         self.running = True

@@ -1,25 +1,78 @@
-import alsaaudio, time, audioop
-import numpy as np
-import random
-import scipy.io.wavfile, scipy
-import struct
-import sys
+#!/usr/bin/python3
+import argparse
 
-from beat_detector import BeatDetector
-from color_screen import ColorScreen
+from animators.energy_animator import EnergyAnimator
+from audio_sources.file_audio_source import FileAudioSource
+from audio_sources.alsa_audio_source import ALSAAudioSource    
+from screens.sdl_color_screen import SDLColorScreen
+from screens.serial_driver_screen import SerialDriverScreen
 
+from animators.fft_animator import FFTAnimator
 
-batch_size = 10  # in ms
+screens = {
+    "sdl": SDLColorScreen,
+    "lsd": SerialDriverScreen
+}
+animators = {
+    "energy": EnergyAnimator,
+    "fft": FFTAnimator,
+}
 
 if __name__ == "__main__":
-
-    color_screen_list = [ColorScreen("Low", 0., 85., [50., 100.]), ColorScreen("Mid", 250., 1000., [200., 400.])]
-    beat_detector = BeatDetector(20, 1024, color_screen_list)
-    beat_detector.listen()
-
-    for cs in color_screen_list:
-        cs.plot_pitches()
-        cs.write_signal()
-
-    #wav = np.array(wav, dtype=np.int16)
-    #scipy.io.wavfile.write("lul.wav", rate=44100, data=wav)
+    parser = argparse.ArgumentParser(description='BeatDetectionArduinoEngine')
+    parser.add_argument('--screen',
+                        metavar="[ sdl | serial ]",
+                        dest="screen", default="sdl", help='The screen')
+    parser.add_argument('-n', '--nleds', dest="nleds",type=int, help="Number of leds", default=50)
+    parser.add_argument('--animator', 
+                        metavar="[ {} ]".format(" | ".join(animators.keys())), 
+                        dest="animator",
+                        default="energy", help='Animator type')
+    parser.add_argument(
+        '--alsa', 
+        nargs=1,
+        metavar='alsa',
+        dest="alsa",
+        help='Alsa audio capture source (arecord -L can list capture devices)')
+    parser.add_argument(
+        '-f',
+        '--file',
+        nargs=1,
+        metavar='filepath',
+        dest="filepath",
+        help='Audio file as a source',
+    )
+    "hw:CARD=Codec,DEV=0"
+    args = parser.parse_args()
+    screen = None
+    animator = None
+    audio_source = None
+    if args.screen == "sdl":
+        from screens.sdl_color_screen import SDLColorScreen
+        screen = SDLColorScreen(args.nleds)
+    elif args.screen == "serial":
+        from screens.serial_driver_screen import SerialDriverScreen
+        screen = SerialDriverScreen(args.nleds)
+    else:
+        parser.print_help()
+        exit(1)
+    
+    try:
+        animator = animators[args.animator]
+    except KeyError:
+        parser.print_help()
+        exit(1)
+    
+    if args.alsa:
+        from audio_sources.alsa_audio_source import ALSAAudioSource
+        audio_source = ALSAAudioSource(args.alsa[0])
+    elif args.filepath:
+        from audio_sources.file_audio_source import FileAudioSource
+        audio_source = FileAudioSource(args.filepath[0])
+    else:
+        parser.print_help()
+        exit(1)
+    
+    a = animator(audio_source, screen)
+    a.start()
+    
