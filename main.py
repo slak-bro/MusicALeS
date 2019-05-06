@@ -29,9 +29,17 @@ if __name__ == "__main__":
     parser.add_argument(
         '--alsa', 
         nargs=1,
-        metavar='alsa',
+        metavar='device',
         dest="alsa",
         help='Alsa audio capture source (arecord -L can list capture devices)')
+    parser.add_argument(
+        '--sounddevice', 
+        nargs=1,
+        metavar='device',
+        dest="sounddevice",
+        help="""
+        sounddevice capture source, to list capture devices :
+        python3 -m sounddevice -c "sounddevice.query_devices(kind='input')" """)
     parser.add_argument(
         '-f',
         '--file',
@@ -74,6 +82,9 @@ if __name__ == "__main__":
     elif args.filepath:
         from audio_sources.file_audio_source import FileAudioSource
         audio_source = FileAudioSource(args.filepath[0])
+    elif args.sounddevice:
+        from audio_sources.sounddevice_audio_source import SoundDeviceAudioSource
+        audio_source = SoundDeviceAudioSource(args.sounddevice[0])
     else:
         parser.print_help()
         exit(1)
