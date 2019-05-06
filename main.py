@@ -15,7 +15,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='BeatDetectionArduinoEngine')
     parser.add_argument('--benchmark', 
                         metavar="[ {} ]".format(" | ".join(animators.keys())), 
-                        dest="animator",
+                        dest="benchmark",
                         default=None,
                         help='Benchmark an animator')
     parser.add_argument('--screen',
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     parser.add_argument('--animator', 
                         metavar="[ {} ]".format(" | ".join(animators.keys())), 
                         dest="animator",
-                        default="fft", help='Animator type')
+                        default="energy", help='Animator type')
     parser.add_argument(
         '--alsa', 
         nargs=1,
@@ -42,12 +42,12 @@ if __name__ == "__main__":
     )
     "hw:CARD=Codec,DEV=0"
     args = parser.parse_args()
-    if args.animator is not None:
-        if args.animator not in animators.keys():
+    if args.benchmark is not None:
+        if args.benchmark not in animators.keys():
             print("Unknown animator")
             parser.print_help()
             exit(1)
-        benchmark(animators[args.animator], 1000, nLeds = args.nleds)
+        benchmark(animators[args.benchmark], 1000, nLeds = args.nleds)
         exit(0)
     screen = None
     animator = None

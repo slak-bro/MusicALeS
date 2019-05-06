@@ -6,7 +6,7 @@ import numpy as np
 import time
 def grad(v,n):
     a = np.linspace(0,v,n)
-    return np.transpose(np.array([a, np.zeros([n]), a], dtype=np.uint8)
+    return np.transpose(np.array([a, np.zeros([n]), a], dtype=np.uint8))
 
 class EnergyAnimator(Animator):
     def __init__(self, audio_source, screen):
