@@ -9,15 +9,19 @@ class Command(Enum):
 
 class Driver(object):
     def __init__(self, dev="/dev/ttyS2", baud_rate=500000):
+        print("LED driver init @{} bps".format(baud_rate))
         self.serial = serial.Serial(dev, baud_rate)
         self.nLeds = None
+        self.debug = debug
+    def write(self, *data):
+        self.serial.write(pack("<{}B".format(len(data)), *data))
+        self.serial.flush()
+        if self.debug: print("Bytes sent: {}".format(data))
     def setup(self, nLeds):
         self.nLeds = nLeds
-        self.serial.write(pack('<B', Command.SETUP.value))
-        self.serial.flush()
+        self.write(Command.SETUP.value)
         # print(self.serial.readline())
-        self.serial.write(pack('<BB', nLeds//256, nLeds%256))
-        self.serial.flush()
+        self.write(nLeds//256, nLeds%256)
         print(self.serial.readline())
 
     def light(self, data):
@@ -26,14 +30,15 @@ class Driver(object):
         Args:
             data ([np array]): shape: nLeds,3
         """
-
         self.serial.write(pack('<B', Command.LIGHT.value))
         self.serial.flush()
-        self.serial.read()
+        if self.debug: print("Light command sent")
         d = list(data.flatten())
-        #print(self.serial.readline())
+        self.serial.read()
         self.serial.write(pack("<{}B".format(3*self.nLeds), *d))
         self.serial.flush()
+        if self.debug: print("Data sent")
+        #print(self.serial.readline())
         self.serial.read()
 
 if __name__ == "__main__":
@@ -44,6 +49,7 @@ if __name__ == "__main__":
     print("Setup complete.")
     N = 500
     start = time.time()
+    n = 0
     while i < N:
         a = np.array([[255,(i%2)*255,255]]*nled)
         d.light(a)

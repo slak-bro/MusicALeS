@@ -1,6 +1,6 @@
 pydub==0.23.1
 numpy==1.16.2
-PySDL2==0.9.6
+palettable==3.1.1
 
 # For pyalsaaudio you will need to install python-alsaaudio and libasound2-dev using your package manager 
 pyalsaaudio==0.8.4
