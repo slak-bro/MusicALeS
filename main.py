@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 import argparse
 
+from utils.benchmark import benchmark
+
 from animators.energy_animator import EnergyAnimator
 from animators.fft_animator import FFTAnimator
 
@@ -11,14 +13,19 @@ animators = {
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='BeatDetectionArduinoEngine')
+    parser.add_argument('--benchmark', 
+                        metavar="[ {} ]".format(" | ".join(animators.keys())), 
+                        dest="animator",
+                        default=None,
+                        help='Benchmark an animator')
     parser.add_argument('--screen',
                         metavar="[ sdl | serial ]",
                         dest="screen", default="sdl", help='The screen')
-    parser.add_argument('-n', '--nleds', dest="nleds",type=int, help="Number of leds", default=50)
+    parser.add_argument('-n', '--nleds', dest="nleds",type=int, help="Number of leds", default=300)
     parser.add_argument('--animator', 
                         metavar="[ {} ]".format(" | ".join(animators.keys())), 
                         dest="animator",
-                        default="energy", help='Animator type')
+                        default="fft", help='Animator type')
     parser.add_argument(
         '--alsa', 
         nargs=1,
@@ -35,6 +42,13 @@ if __name__ == "__main__":
     )
     "hw:CARD=Codec,DEV=0"
     args = parser.parse_args()
+    if args.animator is not None:
+        if args.animator not in animators.keys():
+            print("Unknown animator")
+            parser.print_help()
+            exit(1)
+        benchmark(animators[args.animator], 1000, nLeds = args.nleds)
+        exit(0)
     screen = None
     animator = None
     audio_source = None

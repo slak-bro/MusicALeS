@@ -8,7 +8,7 @@ class Command(Enum):
     LIGHT = 1
 
 class Driver(object):
-    def __init__(self, dev="/dev/ttyS2", baud_rate=500000):
+    def __init__(self, dev="/dev/ttyS2", baud_rate=500000, debug=False):
         print("LED driver init @{} bps".format(baud_rate))
         self.serial = serial.Serial(dev, baud_rate)
         self.nLeds = None
