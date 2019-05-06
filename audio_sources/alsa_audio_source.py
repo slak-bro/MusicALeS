@@ -42,7 +42,7 @@ class ALSAAudioSource(AudioSource):
                 data = None
                 for _ in range(self.buffer_split):
                     _, tdata = self.sink.read()
-                    tdata = np.array(list(struct.iter_unpack("<i", tdata)), dtype=np.float32)
+                    tdata = np.frombuffer(tdata, dtype=np.int32)
                     data = tdata if data is None else np.concatenate([data, tdata])
                 data = data.flatten()
                 self.callback(data)
