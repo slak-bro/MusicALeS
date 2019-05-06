@@ -2,10 +2,6 @@
 import argparse
 
 from animators.energy_animator import EnergyAnimator
-from audio_sources.file_audio_source import FileAudioSource
-from audio_sources.alsa_audio_source import ALSAAudioSource    
-
-from animators.energy_animator import EnergyAnimator
 from animators.fft_animator import FFTAnimator
 
 animators = {

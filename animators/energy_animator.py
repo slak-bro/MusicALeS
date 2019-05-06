@@ -31,7 +31,7 @@ class EnergyAnimator(Animator):
 
 if __name__ == "__main__":
     from audio_sources.file_audio_source import FileAudioSource
-    #from audio_sources.alsa_audio_source import ALSAAudioSource    
+    #from audio_sources.alsa_audio_source import ALSAAudioSource
     from screens.sdl_color_screen import SDLColorScreen
     audio_source = FileAudioSource("traindata/skeler-in_my_mind.mp3")
     #audio_source = ALSAAudioSource()
