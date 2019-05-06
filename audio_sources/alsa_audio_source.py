@@ -15,11 +15,11 @@ class ALSAAudioSource(AudioSource):
     Tweak audio routing
         $ pavucontrol
     Args:
-        AudioSource ([type]): [description]
+        Alsa capture device (can be found using arecord -L)
     """
 
-    def __init__(self):
-        self.sink = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NORMAL, device="hw:CARD=Loopback,DEV=1")
+    def __init__(self, alsadevice):
+        self.sink = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NORMAL, device=alsadevice)
         self.callback = None
     
     def configure(self, sample_rate, buffer_size):

@@ -18,6 +18,7 @@ class FFTAnimator(Animator):
     def __init__(self, audio_source, screen):
         super().__init__(audio_source, screen)
         self.sample_size = 2048
+        self.kept_fft_values = int(self.sample_size/2)
         self.audio_source.configure(44100, self.sample_size)
         self.audio_source.register_callback(self.animate)
         self.max = 0
@@ -26,10 +27,10 @@ class FFTAnimator(Animator):
 
         self.effect_args = [self.audio_source, self.screen, self]
         # List of effects. Order matters!
-        self.list_effects = [BasicColorEffect(*self.effect_args),
-                             SpaceSmoothingEffect(*self.effect_args, first_value=[0, 0, 0]),
-                             TimeSmoothingEffect(*self.effect_args, history_ponderation=self.history_ponderation), 
-                             SymmetryEffect(*self.effect_args)]
+        self.list_effects = [SpaceSmoothingEffect(*self.effect_args, first_value=[0, 0, 0]),
+                             TimeSmoothingEffect(*self.effect_args, history_ponderation=self.history_ponderation),
+                             BasicColorEffect(*self.effect_args),
+                             SymmetryEffect(*self.effect_args),]
     
     def rescale_list(self, data):
         """
@@ -42,10 +43,9 @@ class FFTAnimator(Animator):
             list: rescaled list
         """
 
-        # Try to comment this line and you'll see what happen
 
         # Rescale the size of the list
-        data = [data[int(i*(self.sample_size/self.screen.nLeds/2))] for i in range(self.screen.nLeds)]
+        data = [data[int(i*(self.kept_fft_values/self.screen.nLeds))] for i in range(self.screen.nLeds)]
 
         # Apply abs function and get a color value
         data = list(map(abs, data))
@@ -67,7 +67,7 @@ class FFTAnimator(Animator):
         # If the first value is not set to zero, the end result is pretty bad (even with SpaceSmoothingEffect)
         y[0] = 0
 
-        return [y[int(i**2 / self.sample_size)] for i in range(self.sample_size)]  # here self.sample_size == len(y)
+        return [y[int(i**2 / self.kept_fft_values)] for i in range(self.kept_fft_values)]  # here self.sample_size == len(y)
     
     def apply_effects(self, values):
         for effect in self.list_effects:
@@ -75,7 +75,7 @@ class FFTAnimator(Animator):
         return values
     
     def animate(self, data):
-        cal_Y = fft(data)[:self.sample_size]
+        cal_Y = fft(data)[:self.kept_fft_values]
         try:
             cal_Y = self.calibrate(cal_Y)
             cal_Y = self.rescale_list(cal_Y)
