@@ -2,8 +2,20 @@
 import argparse
 
 from animators.energy_animator import EnergyAnimator
+from audio_sources.file_audio_source import FileAudioSource
+from audio_sources.alsa_audio_source import ALSAAudioSource    
+from screens.sdl_color_screen import SDLColorScreen
+from screens.serial_driver_screen import SerialDriverScreen
+
+from animators.fft_animator import FFTAnimator
+
+screens = {
+    "sdl": SDLColorScreen,
+    "lsd": SerialDriverScreen
+}
 animators = {
     "energy": EnergyAnimator,
+    "fft": FFTAnimator,
 }
 
 if __name__ == "__main__":
