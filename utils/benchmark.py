@@ -5,10 +5,11 @@ import numpy as np
 import cProfile, pstats
 import sys
 import time
+
 from screens.screen import Screen
 class DummyScreen(Screen):
     def __init__(self, nLeds):
-        self.nLeds =nLeds
+        self.nLeds = nLeds
     def display(self, colorArray):
         return
 
