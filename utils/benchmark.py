@@ -28,8 +28,8 @@ class DummyAudioSource(AudioSource):
         pr = cProfile.Profile()
         start = time.time()
         pr.enable()
-        for _ in range(self.npass):
-            self.callback(data)
+        for i in range(self.npass):
+            self.callback(data[i])
         pr.disable()
         end = time.time()
         sortby = 'cumulative'
