@@ -2,14 +2,14 @@
 # Launch interactive mode using -i parameter
 # Otherwise all parameters are forwarded to the main.py script
 
-printf "Building docker image... "
+printf "Building docker image ... "
 OUTPUT=$(docker build ./docker/ -q -t beatdetectionarduinoengine:1.0 2>&1)
 if [ $? -ne 0 ] ; then
-    echo "\nError while building image :"
+    echo "\n\e[31mError while building image :\e[0m"
     echo "$OUTPUT"
     exit 1
 else
-    echo "OK"
+    echo "\e[32mOK\e[0m"
 fi
 
 if [ "$1" = "-i" ] ; then
