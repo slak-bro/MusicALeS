@@ -18,6 +18,8 @@ class ALSAAudioSource(AudioSource):
         Alsa capture device (can be found using arecord -L)
     """
 
+    name = "alsa"
+
     def __init__(self, alsadevice):
         self.sink = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NORMAL, device=alsadevice)
         self.callback = None
