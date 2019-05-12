@@ -23,5 +23,5 @@ else
         --device /dev/snd \
         --device /dev/ttyS2 \
         -v $(pwd):/app \
-        -it beatdetectionarduinoengine:1.0 /app/docker/start.sh $@
+        -i beatdetectionarduinoengine:1.0 /app/docker/start.sh $@
 fi
