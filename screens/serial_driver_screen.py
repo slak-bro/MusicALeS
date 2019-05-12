@@ -5,6 +5,9 @@ import numpy as np
 from arduino.driver.driver import Driver
 
 class SerialDriverScreen(Screen):
+
+    name = "serial"
+
     def __init__(self, nLeds):
         self.nLeds =nLeds
         self.driver = Driver()

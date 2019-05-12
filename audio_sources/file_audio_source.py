@@ -9,6 +9,9 @@ from pydub.playback import play
 
 
 class FileAudioSource(AudioSource):
+
+    name = "file"
+
     def __init__(self, path):
         self.sound = AudioSegment.from_file(file=path)
         self.callback = None

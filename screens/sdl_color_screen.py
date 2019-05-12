@@ -5,6 +5,9 @@ from multiprocessing import Process, Array as mpArray
 import numpy as np
 
 class SDLColorScreen(Screen):
+
+    name = "sdl"
+
     def __init__(self, nLeds):
         self.nLeds = nLeds
         self.RESOURCES = sdl2.ext.Resources(__file__, "resources")

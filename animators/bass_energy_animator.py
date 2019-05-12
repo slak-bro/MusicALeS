@@ -8,6 +8,9 @@ def grad(ca,cb,i,n):
 
 
 class BassEnergyAnimator(Animator):
+
+    name = "bass_energy"
+
     def __init__(self, audio_source, screen):
         super().__init__(audio_source, screen)
         self.sample_rate = 44100

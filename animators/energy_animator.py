@@ -9,6 +9,9 @@ def grad(v,n):
     return np.transpose(np.array([a, np.zeros([n]), a], dtype=np.uint8))
 
 class EnergyAnimator(Animator):
+
+    name = "energy"
+
     def __init__(self, audio_source, screen):
         super().__init__(audio_source, screen)
         self.audio_source.configure(22000, 400)

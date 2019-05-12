@@ -15,6 +15,9 @@ def grad(ca,cb,i,n):
 
 
 class FFTAnimator(Animator):
+
+    name = "fft"
+
     def __init__(self, audio_source, screen):
         super().__init__(audio_source, screen)
         self.sample_size = 2048
