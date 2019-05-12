@@ -19,6 +19,14 @@ if [ "$1" = "-i" ] ; then
         --cap-add=SYS_NICE \
         -v $(pwd):/app \
         -it beatdetectionarduinoengine:1.0 bash -c "cd /app; bash"
+elif [ "$1" = "-d" ] ; then
+    shift
+    docker run \
+        --device /dev/snd \
+        --device /dev/ttyS2 \
+        --cap-add=SYS_NICE \
+        -v $(pwd):/app \
+        -i beatdetectionarduinoengine:1.0 /app/docker/start.sh $@
 else
     docker run \
         --device /dev/snd \
