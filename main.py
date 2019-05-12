@@ -73,6 +73,6 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             end_method = getattr(a, "zero", None)
             if callable(end_method):
-                print("Zeroing the LEDS")
+                print("\nZeroing the LEDS")
                 a.zero()
             print("Terminated by user")
