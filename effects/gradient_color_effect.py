@@ -42,7 +42,6 @@ class GradientColorEffect(Effect):
         self.index = (self.index + 1) % len(self.colors_gradient)
         return c
 
-
     def apply_effect(self, data):
         """
         Find a color and apply it to the given input

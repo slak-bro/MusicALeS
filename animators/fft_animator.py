@@ -6,6 +6,7 @@ from effects.space_smoothing_effect import SpaceSmoothingEffect
 from effects.time_smoothing_effect import TimeSmoothingEffect
 from effects.symmetry_effect import SymmetryEffect
 from effects.gradient_color_effect import GradientColorEffect
+from effects.multi_color_effect import MultiColorEffect
 from math import log
 import numpy as np
 from scipy.fftpack import fft
@@ -32,7 +33,7 @@ class FFTAnimator(Animator):
         # List of effects. Order matters!
         self.list_effects = [SpaceSmoothingEffect(*self.effect_args, first_value=[0, 0, 0]),
                              TimeSmoothingEffect(*self.effect_args, history_ponderation=self.history_ponderation),
-                             GradientColorEffect(*self.effect_args),
+                             MultiColorEffect(*self.effect_args),
                              SymmetryEffect(*self.effect_args),]
     
     def rescale_list(self, data):
