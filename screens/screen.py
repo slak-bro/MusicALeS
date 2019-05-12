@@ -9,4 +9,3 @@ class Screen(ABC):
             colorArray ([R,G,B]*nLeds): R,G,B between 0 and 255
         """
         pass
-    

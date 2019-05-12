@@ -28,3 +28,5 @@ class Animator(ABC):
         """
         pass
     
+    def zero(self):
+        self.screen.zero()
