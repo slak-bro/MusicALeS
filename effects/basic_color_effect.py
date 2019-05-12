@@ -17,7 +17,7 @@ class BasicColorEffect(Effect):
         self.color_loop_size = 250.
     
     def get_color(self):
-        return np.array([1., 0., 1.])
+        return np.array([0., 0.5, 0.5])
 
 
     def apply_effect(self, data):

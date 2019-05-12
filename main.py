@@ -31,14 +31,26 @@ if __name__ == "__main__":
         help="Audio input method"
     )
 
+    parser.add_argument(
+        "--brightness",
+        type=float,
+        dest="brightness",
+        required=False,
+        default=1.0,
+        metavar='N',
+        help="Brightness of the leds. Float > 0. Value superior to 2 is not recommended."
+    )
+
+
     args = parser.parse_args()
+    assert 1 >= args.brightness >= 0, "--brightness argument must be between 0 and 1"
     screen = None
     animator = None
     audio_source = None
 
     try:
         screen_class = screens_dict[args.screen]
-        screen = screen_class(args.nleds)
+        screen = screen_class(args.nleds, args.brightness)
     except (KeyError, TypeError):
         print("\033[1;31;40mERROR:\033[0m Screen '{}' does not exist or failed to import".format(args.screen))
         parser.print_help()

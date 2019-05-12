@@ -8,12 +8,14 @@ class SDLColorScreen(Screen):
 
     name = "sdl"
 
-    def __init__(self, nLeds):
+    def __init__(self, nLeds, brightness):
         self.nLeds = nLeds
         self.RESOURCES = sdl2.ext.Resources(__file__, "resources")
         sdl2.ext.init()
         self.SCREEN_HEIGHT = 200
         self.SCREEN_WIDTH = 1530
+
+        self.brightness = brightness
         
         self.LED_WIDTH = self.SCREEN_WIDTH // self.nLeds
         self.renderProcess = None
@@ -25,6 +27,7 @@ class SDLColorScreen(Screen):
         
     def display(self, colorArray):
         assert len(colorArray) == self.nLeds
+        colorArray = self.apply_brightness(colorArray)
         flat = np.array(colorArray).flatten()
         for i in range(self.nLeds):
             self.LEDS[3*i] = flat[3*i]
