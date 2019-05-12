@@ -6,6 +6,7 @@ class SoundDeviceAudioSource(AudioSource):
     """
     Audio source using python's sounddevice library
     """
+    name = "sounddevice"
     def __init__(self, device):
         self.device = device
         self.callback = None
