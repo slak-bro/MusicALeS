@@ -1,7 +1,7 @@
 from .audio_source import AudioSource
 import numpy as np
 import sounddevice as sd
-
+import time
 
 class SoundDeviceAudioSource(AudioSource):
     """
@@ -20,9 +20,11 @@ class SoundDeviceAudioSource(AudioSource):
 
     def start(self):
         assert self.callback is not None
+        send = time.time()
         future_data = sd.rec(self.buffer_size, samplerate=self.sample_rate, channels=2, device=self.device)[:,0]
         while True:
             sd.wait()
             data = future_data
             future_data = sd.rec(self.buffer_size, samplerate=self.sample_rate, channels=2, device=self.device)[:,0]
+            send = time.time()
             self.callback(data)

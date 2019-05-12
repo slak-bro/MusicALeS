@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
-from colorsys import rgb_to_hsv, hsv_to_rgb
+import numpy as np
+from utils.rgb_to_hsv_np import rgb_to_hsv, hsv_to_rgb
 
 class Screen(ABC):
     @abstractmethod
@@ -21,9 +22,7 @@ class Screen(ABC):
         Returns:
             ndarray: output array with colors modified with brightness
         """
-
-        for led_index in range(self.nLeds):
-            hsv_color = list(rgb_to_hsv(*colorArray[led_index]))
-            hsv_color[2] *= self.brightness
-            colorArray[led_index] = [int(x) for x in hsv_to_rgb(*hsv_color)]
-        return colorArray
+        hsv = rgb_to_hsv(colorArray)
+        hsv[:,2] *= self.brightness
+        rgb = hsv_to_rgb(hsv)
+        return rgb.astype(np.int32)

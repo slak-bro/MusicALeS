@@ -20,7 +20,7 @@ class FFTAnimator(Animator):
 
     def __init__(self, audio_source, screen):
         super().__init__(audio_source, screen)
-        self.sample_size = 512
+        self.sample_size = 400
         self.kept_fft_values = int(self.sample_size/2)
         self.audio_source.configure(16000, self.sample_size)
         self.audio_source.register_callback(self.animate)
