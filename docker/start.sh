@@ -5,5 +5,5 @@ echo "Capture device enabled"
 
 #Start program
 cd /app
-python3 main.py $@
+nice -n -20 python3 main.py $@
 
