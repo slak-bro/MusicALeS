@@ -13,7 +13,7 @@ class BassEnergyAnimator(Animator):
 
     def __init__(self, audio_source, screen):
         super().__init__(audio_source, screen)
-        self.sample_rate = 44100
+        self.sample_rate = 16000
         self.audio_source.configure(self.sample_rate, self.sample_rate//30)
         self.audio_source.register_callback(self.animate)
         self.val = 255
