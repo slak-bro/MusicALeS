@@ -2,6 +2,7 @@ from .audio_source import AudioSource
 import numpy as np
 import sounddevice as sd
 
+
 class SoundDeviceAudioSource(AudioSource):
     """
     Audio source using python's sounddevice library

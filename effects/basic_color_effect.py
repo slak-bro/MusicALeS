@@ -4,7 +4,6 @@ from effects.effect import Effect
 from math import pi
 import numpy as np
 import random
-from scipy.signal import savgol_filter
 
 
 class BasicColorEffect(Effect):
