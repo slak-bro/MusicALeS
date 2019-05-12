@@ -19,7 +19,6 @@ class BasicColorEffect(Effect):
     def get_color(self):
         return np.array([0., 0.5, 0.5])
 
-
     def apply_effect(self, data):
         """
         Find a color and apply it to the given input

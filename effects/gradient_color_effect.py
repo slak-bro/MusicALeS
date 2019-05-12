@@ -45,7 +45,7 @@ class GradientColorEffect(Effect):
 
     def apply_effect(self, data):
         """
-        Find a color and apply it to the gien input
+        Find a color and apply it to the given input
         
         Args:
             data (list): input data - list of float or integers
