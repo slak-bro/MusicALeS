@@ -67,6 +67,12 @@ if __name__ == "__main__":
         benchmark(animator, 1000, nLeds = args.nleds)
         exit(0)
     else:
-        a = animator(audio_source, screen)
-        a.start()
-    
+        try:
+            a = animator(audio_source, screen)
+            a.start()
+        except KeyboardInterrupt:
+            end_method = getattr(a, "zero", None)
+            if callable(end_method):
+                print("Zeroing the LEDS")
+                a.zero()
+            print("Terminated by user")

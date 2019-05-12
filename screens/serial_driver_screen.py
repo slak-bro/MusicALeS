@@ -16,3 +16,6 @@ class SerialDriverScreen(Screen):
     def display(self, colorArray):
         assert len(colorArray) == self.nLeds
         self.driver.light(np.array(colorArray))
+    
+    def zero(self):
+        self.driver.light(np.array([[0, 0, 0] for _ in range(self.nLeds)]))
