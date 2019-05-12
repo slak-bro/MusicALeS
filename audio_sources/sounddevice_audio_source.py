@@ -19,9 +19,9 @@ class SoundDeviceAudioSource(AudioSource):
 
     def start(self):
         assert self.callback is not None
-        future_data = sd.rec(self.buffer_size, samplerate=self.sample_rate, channels=1, device=self.device)
+        future_data = sd.rec(self.buffer_size, samplerate=self.sample_rate, channels=2, device=self.device)[:,0]
         while True:
             sd.wait()
             data = future_data
-            future_data = sd.rec(self.buffer_size, samplerate=self.sample_rate, channels=1, device=self.device)
+            future_data = sd.rec(self.buffer_size, samplerate=self.sample_rate, channels=2, device=self.device)[:,0]
             self.callback(data)

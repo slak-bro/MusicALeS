@@ -20,9 +20,9 @@ class FFTAnimator(Animator):
 
     def __init__(self, audio_source, screen):
         super().__init__(audio_source, screen)
-        self.sample_size = 2048
+        self.sample_size = 512
         self.kept_fft_values = int(self.sample_size/2)
-        self.audio_source.configure(44100, self.sample_size)
+        self.audio_source.configure(16000, self.sample_size)
         self.audio_source.register_callback(self.animate)
         self.max = 0
         self.history_ponderation =  [0.1, 0.2, 0.3, 0.4]
