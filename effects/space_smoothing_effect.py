@@ -16,6 +16,7 @@ class SpaceSmoothingEffect(Effect):
         self.last_value = last_value
     
     def apply_effect(self, data):
-        data = np.array(data)
-        processed_data = np.array([savgol_filter(data[:,dim], self.window_length, self.polyorder, deriv=self.deriv) for dim in range(len(data[0]))]).T
-        return np.clip([list(map(int, x)) for x in processed_data], 0, 255)
+        #data = np.array(data).T
+        #import ipdb; ipdb.set_trace()
+        processed_data = savgol_filter(data, self.window_length, self.polyorder, deriv=self.deriv, mode="constant", axis=0)
+        return np.clip(processed_data, 0, 255).astype(np.int32)

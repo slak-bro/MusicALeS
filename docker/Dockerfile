@@ -8,4 +8,4 @@ RUN apt-get install -y alsa-base libasound2-dev
 RUN apt-get install -y libffi-dev libportaudio2
 RUN pip3 install sounddevice
 # Remaining python libraries
-RUN pip3 install pyserial pyalsaaudio
+RUN pip3 install pyserial pyalsaaudio ipdb
