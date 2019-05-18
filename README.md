@@ -8,8 +8,3 @@ Beat detection engine for switching lights on and off on a LED cord with groove
 - Launch the container `./launch.sh`
 
 Inside the container the `./docker/start.sh` script is started
-
-
-### Contributors :
- - Alexis Reymann</br>
- - Arthur Pastel
